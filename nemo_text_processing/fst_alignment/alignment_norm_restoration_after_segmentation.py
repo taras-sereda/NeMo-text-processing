@@ -1,4 +1,3 @@
-# from nemo_text_processing.text_normalization.utils_audio_based import _get_alignment, get_semiotic_spans
 import json
 import os
 import pickle
@@ -185,13 +184,17 @@ def process(item, key, normalizer, use_cache=True, verbose=False, with_normalize
     segmented_result_clean = clean(segmented_result).lower()
     for id, segment in enumerate(segmented):
         segment_clean = clean(segment).lower()
+        # if "hi, welcome to thecube virtual." in segment_clean:
+        #     import pdb; pdb.set_trace()
         if segment_clean in segmented_result_clean:
             segment_start_idx = max(segmented_result_clean.index(segment_clean) - 1, 0)
 
-            alignment_start_idx  = _get_aligned_index(alignment, segment_start_idx)
-            # alignment_start_idx = segmented_indices[segment_start_idx]
+            alignment_start_idx = segmented_indices[segment_start_idx]
             segment_end_idx = min(segment_start_idx + len(segment), len(segmented_indices) - 1)
-            alignment_end_idx = _get_aligned_index(alignment, segment_end_idx)
+            alignment_end_idx = segmented_indices[segment_end_idx]
+
+            # alignment_start_idx  = _get_aligned_index(alignment, segment_start_idx)
+            # alignment_end_idx = _get_aligned_index(alignment, segment_end_idx)
 
             raw_text = "".join(list(map(remove, [x[0] for x in alignment[alignment_start_idx: alignment_end_idx + 1]])))
             restored[id] = raw_text
@@ -321,7 +324,7 @@ if __name__ == "__main__":
     # result = []
     # start_overall_time = perf_counter()
     # for key, item in tqdm(data.items()):
-    #     if key == 'Aj3CDtsCXOk':
+    #     if key == 'AnYuZcVmFeQ':
     #         print(f"processing {key}")
     #         result.append(process(item, key, normalizer, use_cache=True, verbose=False, with_normalizer=False))
     #
@@ -340,41 +343,43 @@ if __name__ == "__main__":
     print(f"use_cache: {use_cache}, verbose: {verbose}, with_normalizer: {with_normalizer}")
 
 
+    start_validation_time = perf_counter()
     restored_lines = []
     for audio_segments in result:
         for line in audio_segments:
             restored_lines.append(line["text_pc"])
 
-    # normalizer_prediction = normalizer.normalize_list(
-    #     restored_lines,
-    #     verbose=False,
-    #     punct_pre_process=False,
-    #     punct_post_process=False,
-    #     batch_size=300,
-    #     n_jobs=10,
-    # )
+    # this is need to validate alignments
+    normalizer_prediction = normalizer.normalize_list(
+        restored_lines,
+        verbose=False,
+        punct_pre_process=False,
+        punct_post_process=False,
+        batch_size=300,
+        n_jobs=10,
+    )
 
     drop = []
+    drop_text_error = 0
     num_restored = 0
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
+    idx = 0
     with open(f"{output_dir}/{os.path.basename(segmented_manifest).replace('.json', '_restored.json')}", "w") as f_out:
         for audio_segments in result:
             for line in audio_segments:
-                normalized_pc = normalizer.normalize(line["text_pc"])
-                if remove_punctuation(line["text"]) != remove_punctuation(normalized_pc) and not (len(line["text"]) < len(normalized_pc) and line["text"] == normalized_pc[1:]):
-                    print(line["text"])
-                    print(normalized_pc)
-                    import pdb; pdb.set_trace()
-                    print()
-
+                normalized_pc = normalizer_prediction[idx]
                 if remove_punctuation(line["text"]) != remove_punctuation(normalized_pc):
-                    drop.append((line["text"], normalized_pc))
+                    if len(line["text"]) < len(normalized_pc) and line["text"].lower() == normalized_pc[1:].lower():
+                        drop_text_error += 1
+                    else:
+                        drop.append((line["text"], normalized_pc))
                 else:
                     f_out.write(json.dumps(line, ensure_ascii=False) + '\n')
                     num_restored += 1
+                idx += 1
 
-    print(f"Dropped {len(drop)}")
+    print(f"Dropped {len(drop)}, dropped_text_error: {drop_text_error}")
     if verbose:
         for d in drop:
             print(f'TEXT: {d[0]}')
@@ -384,6 +389,4 @@ if __name__ == "__main__":
 
     num_segmented_original = sum([len(item['segmented']) for item in data.values()])
     print(f"Restored {round(num_restored/num_segmented_original * 100, 2)}% ({num_restored}/{num_segmented_original})")
-
-    import pdb; pdb.set_trace()
-
+    print(f'Validation done in: {round((perf_counter() - start_validation_time), 2)} sec.')

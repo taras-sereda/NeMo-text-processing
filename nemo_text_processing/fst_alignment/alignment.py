@@ -13,13 +13,15 @@
 # limitations under the License.
 
 
-import logging
+import re
 from argparse import ArgumentParser
 from typing import List
 
 import pynini
 from pynini import Far
+import logging
 
+# logging.setLevel("DEBUG")
 
 """
 This files takes 1. Far file containing a fst graph created by TN or ITN 2. entire string.
@@ -100,6 +102,7 @@ def get_word_segments(text: str) -> List[List[int]]:
     """
     Returns word segments from given text based on white space in form of list of index spans.
     """
+    text = re.sub(r" +", " ", text)
     spans = []
     cur_span = [0]
     for idx, ch in enumerate(text):
@@ -107,7 +110,13 @@ def get_word_segments(text: str) -> List[List[int]]:
             cur_span.append(idx)
         elif ch == " ":
             cur_span.append(idx)
-            assert len(cur_span) == 2
+            try:
+                assert len(cur_span) == 2
+            except:
+                import pdb
+
+                pdb.set_trace()
+                print()
             spans.append(cur_span)
             cur_span = []
         elif idx == len(text) - 1:
@@ -123,10 +132,12 @@ def create_symbol_table() -> pynini.SymbolTable:
     Creates and returns Pynini SymbolTable used to label alignment with ascii instead of integers
     """
     table = pynini.SymbolTable()
-    for num in range(34, 200):  # ascii alphanum + letter range
-        table.add_symbol(chr(num), num)
-    table.add_symbol(EPS, 0)
+    for num in range(33, 200):  # ascii alphanum + letter range
+        if num != 32:
+            table.add_symbol(chr(num), num)
+
     table.add_symbol(WHITE_SPACE, 32)
+    table.add_symbol(EPS, 0)
     return table
 
 
@@ -151,7 +162,68 @@ def get_string_alignment(fst: pynini.Fst, input_text: str, symbol_table: pynini.
     return output, output_str
 
 
+def get_string_alignment_post_processor(
+    fst: pynini.Fst, input_text: str, symbol_table: pynini.SymbolTable, fst_post_processor: pynini.Fst = None
+):
+    """
+    create alignment of input text based on shortest path in FST. Symbols used for alignment are from symbol_table
+
+    Returns:
+        output: list of tuples, each mapping input character to output
+    """
+    # to match top_rewrite() behavior, otherwise fails on post_normalization_fst
+
+    """
+    # examples to reproduce bug
+    text = " Where does New Relic play in that modernization for costumers? You know what I think it's in a couple ways. The ways that we, my organization, can help the costumer in terms of just sheer understanding of the capability of the platform, what are best practices, h"
+    note, there is a space after the second instance of "twenty twenty"
+    """
+    # lattice = pynini.lib.rewrite.rewrite_lattice(input_text, fst)
+    # lattice = pynini.shortestpath(lattice)
+    lattice = pynini.shortestpath(input_text @ fst)
+    if fst_post_processor is not None:
+        lattice = lattice @ fst_post_processor
+    paths = lattice.paths(input_token_type=symbol_table, output_token_type=symbol_table)
+
+    paths_ = []
+    while not paths.done():
+        ilabels = paths.ilabels()
+        olabels = paths.olabels()
+        istring = [p for p in paths.istring()]
+        ostring = [p for p in paths.ostring()]
+        ostring_len = len(ostring)
+        paths_.append((ilabels, olabels, istring, ostring, ostring_len))
+        paths.next()
+
+    # all these paths have the same weight, select the shortest by length, diff in num of spaces
+    ilabels, olabels, istring, ostring = sorted(paths_, key=lambda x: x[2])[0][:-1]
+
+    logging.debug(istring)
+    logging.debug(ostring)
+    output = list(zip([symbol_table.find(x) for x in ilabels], [symbol_table.find(x) for x in olabels]))
+
+    output_str = "".join(map(remove, [x[1] for x in output]))
+    return output, output_str
+
+
 def _get_aligned_index(alignment: List[tuple], index: int):
+    """
+    Given index in contracted input string computes corresponding index in alignment (which has EPS)
+    """
+    aligned_index = 0
+    idx = 0
+    while idx < index:
+        if alignment[aligned_index][0] != EPS:
+            idx += 1
+        if aligned_index < len(alignment) - 1:
+            aligned_index += 1
+        else:
+            idx = index
+    while aligned_index < len(alignment) - 1 and alignment[aligned_index][0] == EPS:
+        aligned_index += 1
+    return aligned_index
+
+def _get_aligned_index_old(alignment: List[tuple], index: int):
     """
     Given index in contracted input string computes corresponding index in alignment (which has EPS)
     """
@@ -166,12 +238,10 @@ def _get_aligned_index(alignment: List[tuple], index: int):
         aligned_index += 1
     return aligned_index
 
-
 def _get_original_index(alignment, aligned_index):
     """
     Given index in aligned output, returns corresponding index in contracted output string
     """
-
     og_index = 0
     idx = 0
     while idx < aligned_index:
@@ -198,6 +268,8 @@ def indexed_map_to_output(alignment: List[tuple], start: int, end: int):
         output_og_end_index: exclusive end position in output string
     """
     # get aligned start and end of input substring
+    # text = "that got people. Fired up! Yeah. Clapping, and fired up."
+    # print("--->", text[start: end])
     aligned_start = _get_aligned_index(alignment, start)
     aligned_end = _get_aligned_index(alignment, end - 1)  # inclusive
 
@@ -211,6 +283,7 @@ def indexed_map_to_output(alignment: List[tuple], start: int, end: int):
     ):
         aligned_start -= 1
 
+    # start comment
     while (
         aligned_end + 1 < len(alignment)
         and alignment[aligned_end + 1][0] == EPS
@@ -222,6 +295,7 @@ def indexed_map_to_output(alignment: List[tuple], start: int, end: int):
         alignment[aligned_end + 1][1].isalpha() or alignment[aligned_end + 1][1] == EPS
     ):
         aligned_end += 1
+    # end comment
 
     output_og_start_index = _get_original_index(alignment=alignment, aligned_index=aligned_start)
     output_og_end_index = _get_original_index(alignment=alignment, aligned_index=aligned_end + 1)
