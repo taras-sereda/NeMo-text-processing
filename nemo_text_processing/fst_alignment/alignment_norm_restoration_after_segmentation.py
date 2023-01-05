@@ -10,14 +10,60 @@ from alignment import (
     get_string_alignment,
     get_word_segments,
     indexed_map_to_output,
-    remove, _get_aligned_index
+    remove
 )
 from joblib import Parallel, delayed
 from nemo_text_processing.text_normalization.normalize import Normalizer
 from tqdm import tqdm
 import string
+from argparse import ArgumentParser
 
-def remove_punctuation(text, remove_spaces=True, do_lower=True, exclude=None):
+NA = "n/a"
+
+
+def parse_args():
+    parser = ArgumentParser("Restoration of written form after segmentation")
+    parser.add_argument("--raw_m", type=str, required=True,
+                        help=".json manifest with long audio files, required 'text' and 'audio_filepath' fields")
+    parser.add_argument("--segmented_m", type=str, required=True,
+                        help=".json manifest with segmented audio files, required 'text' and 'audio_filepath' fields")
+    parser.add_argument(
+        '--output_m',
+        help="Path to a .json manifest to save restored output",
+        type=str,
+        required=True,
+    )
+    parser.add_argument("--language", help="language", choices=["en", "de", "es", "zh"], default="en", type=str)
+    parser.add_argument("--verbose", help="print info for debugging", action='store_true')
+    parser.add_argument(
+        "--punct_post_process",
+        help="set to True to enable punctuation post processing to match input.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--punct_pre_process", help="set to True to enable punctuation pre processing", action="store_true"
+    )
+    parser.add_argument("--overwrite_cache", help="set to True to re-create .far grammar files", action="store_true")
+    parser.add_argument("--whitelist", help="path to a file with with whitelist", default="../text_normalization/en/data/whitelist/asr_with_pc.tsv", type=str)
+    parser.add_argument(
+        "--cache_dir",
+        help="path to a dir with .far grammar file. Set to None to avoid using cache",
+        default=None,
+        type=str,
+    )
+    parser.add_argument("--n_jobs", default=-2, type=int, help="The maximum number of concurrently running jobs")
+    parser.add_argument("--batch_size", default=200, type=int, help="Number of examples for each process")
+    return parser.parse_args()
+
+def remove_punctuation(text: str, remove_spaces: bool=True, do_lower:bool=True, exclude:bool=None):
+    """
+    Remove punctuation from text
+    Args:
+        text: input text
+        remove_spaces: set to True to remove spaces
+        do_lower: set to True to lower case
+        exclude: specify a list of punctuation marks to keep, e.g. exclude = ["'", "-"]
+    """
     all_punct_marks = string.punctuation
 
     if exclude is not None:
@@ -28,9 +74,6 @@ def remove_punctuation(text, remove_spaces=True, do_lower=True, exclude=None):
         all_punct_marks = all_punct_marks.replace("-", "")
     text = re.sub("[" + all_punct_marks + "]", " ", text)
 
-    if exclude and "-" not in exclude:
-        text = text.replace("-", " ")
-
     text = re.sub(r" +", " ", text)
     if remove_spaces:
         text = text.replace(" ", "").replace("\u00A0", "").strip()
@@ -38,8 +81,6 @@ def remove_punctuation(text, remove_spaces=True, do_lower=True, exclude=None):
     if do_lower:
         text = text.lower()
     return text.strip()
-
-NA = "n/a"
 
 def clean(text):
     text = (
@@ -184,8 +225,6 @@ def process(item, key, normalizer, use_cache=True, verbose=False, with_normalize
     segmented_result_clean = clean(segmented_result).lower()
     for id, segment in enumerate(segmented):
         segment_clean = clean(segment).lower()
-        # if "hi, welcome to thecube virtual." in segment_clean:
-        #     import pdb; pdb.set_trace()
         if segment_clean in segmented_result_clean:
             segment_start_idx = max(segmented_result_clean.index(segment_clean) - 1, 0)
 
@@ -221,7 +260,11 @@ def process(item, key, normalizer, use_cache=True, verbose=False, with_normalize
                     failed[idx].append(alignment_start_idx)
                     idx -= 1
 
+    num_failed = len(failed)
+
     if with_normalizer:
+        print(f"{key} failed before with_normalizer: {num_failed}")
+        num_failed = 0
         for i in range(len(failed)):
             alignment_start_idx, alignment_end_idx = failed[i][2], failed[i][3]
             raw_text_ = get_raw_text_from_alignment(
@@ -240,12 +283,14 @@ def process(item, key, normalizer, use_cache=True, verbose=False, with_normalize
                 1
             ]
             if len(failed_restored) > 0 and failed_restored[-1] != NA:
-                restored[failed[i][0]] = failed_restored
+                restored[failed[i][0]] = failed_restored[-1]
                 if verbose:
                     print("=" * 40)
                     print(f"RAW : {raw_text_}")
                     print(f"SEGM: {failed[i][1]}")
                     print("=" * 40)
+            else:
+                num_failed += 1
 
     for i in range(len(segmented)):
         if i in restored:
@@ -257,12 +302,14 @@ def process(item, key, normalizer, use_cache=True, verbose=False, with_normalize
             f"{key} -- found: {len(result)} out of {len(item['segmented'])} ({round(len(result) / len(item['segmented']) * 100, 1)}%)"
         )
     print(
-        f'Restoration {key}: {round((perf_counter() - start_time), 2)} sec -- {len(item["segmented"])} -- with normalizer: {len(failed)}'
+        f'Restoration {key}: {round((perf_counter() - start_time), 2)} sec -- {len(item["segmented"])} -- failed: {num_failed}'
     )
     return result
 
 
 if __name__ == "__main__":
+    args = parse_args()
+
     raw_text = ""
     norm_text = ""
     data_dir = "/media/ebakhturina/DATA/mlops_data/pc_retained"
@@ -324,15 +371,19 @@ if __name__ == "__main__":
     # result = []
     # start_overall_time = perf_counter()
     # for key, item in tqdm(data.items()):
-    #     if key == 'AnYuZcVmFeQ':
+    #     if key == 'Ap1L2Doilx0':
     #         print(f"processing {key}")
-    #         result.append(process(item, key, normalizer, use_cache=True, verbose=False, with_normalizer=False))
+    #         try:
+    #             result.append(process(item, key, normalizer, use_cache=True, verbose=False, with_normalizer=True))
+    #         except:
+    #             import pdb; pdb.set_trace()
+    #             print()
     #
     # print(f'ALL restored: {round((perf_counter() - start_overall_time)/60, 2)} min.')
 
     use_cache = True
     verbose = False
-    with_normalizer = False
+    with_normalizer = True
 
     start_time = perf_counter()
     result = Parallel(n_jobs=10)(
@@ -360,7 +411,7 @@ if __name__ == "__main__":
     )
 
     drop = []
-    drop_text_error = 0
+    drop_text_error = []
     num_restored = 0
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
@@ -371,7 +422,7 @@ if __name__ == "__main__":
                 normalized_pc = normalizer_prediction[idx]
                 if remove_punctuation(line["text"]) != remove_punctuation(normalized_pc):
                     if len(line["text"]) < len(normalized_pc) and line["text"].lower() == normalized_pc[1:].lower():
-                        drop_text_error += 1
+                        drop_text_error.append((line["text"], normalized_pc))
                     else:
                         drop.append((line["text"], normalized_pc))
                 else:
@@ -379,7 +430,7 @@ if __name__ == "__main__":
                     num_restored += 1
                 idx += 1
 
-    print(f"Dropped {len(drop)}, dropped_text_error: {drop_text_error}")
+    print(f"Validation: Dropped {len(drop)}, dropped_text_error: {len(drop_text_error)}")
     if verbose:
         for d in drop:
             print(f'TEXT: {d[0]}')
