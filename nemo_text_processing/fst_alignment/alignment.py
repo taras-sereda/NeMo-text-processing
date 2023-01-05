@@ -13,13 +13,13 @@
 # limitations under the License.
 
 
+import logging
 import re
 from argparse import ArgumentParser
 from typing import List
 
 import pynini
 from pynini import Far
-import logging
 
 # logging.setLevel("DEBUG")
 
@@ -223,6 +223,7 @@ def _get_aligned_index(alignment: List[tuple], index: int):
         aligned_index += 1
     return aligned_index
 
+
 def _get_aligned_index_old(alignment: List[tuple], index: int):
     """
     Given index in contracted input string computes corresponding index in alignment (which has EPS)
@@ -237,6 +238,7 @@ def _get_aligned_index_old(alignment: List[tuple], index: int):
     while alignment[aligned_index][0] == EPS:
         aligned_index += 1
     return aligned_index
+
 
 def _get_original_index(alignment, aligned_index):
     """
