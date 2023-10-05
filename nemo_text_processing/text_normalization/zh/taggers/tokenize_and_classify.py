@@ -16,7 +16,6 @@ import os
 import pynini
 from nemo_text_processing.text_normalization.zh.graph_utils import NEMO_SIGMA, GraphFst
 from nemo_text_processing.text_normalization.zh.taggers.cardinal import CardinalFst
-from nemo_text_processing.text_normalization.zh.taggers.word import WordFst
 from nemo_text_processing.text_normalization.zh.taggers.date import DateFst
 from nemo_text_processing.text_normalization.zh.taggers.decimal import DecimalFst
 from nemo_text_processing.text_normalization.zh.taggers.fraction import FractionFst
@@ -26,6 +25,7 @@ from nemo_text_processing.text_normalization.zh.taggers.money import MoneyFst
 from nemo_text_processing.text_normalization.zh.taggers.preprocessor import PreProcessor
 from nemo_text_processing.text_normalization.zh.taggers.time import TimeFst
 from nemo_text_processing.text_normalization.zh.taggers.whitelist import WhiteListFst
+from nemo_text_processing.text_normalization.zh.taggers.word import WordFst
 from pynini.lib import pynutil
 
 
@@ -68,9 +68,9 @@ class ClassifyFst(GraphFst):
             cardinal = CardinalFst(deterministic=deterministic)
             char = WordFst(deterministic=deterministic)
             decimal = DecimalFst(cardinal=cardinal, deterministic=deterministic)
-            fraction = FractionFst(cardinal=cardinal, decimal=decimal,deterministic=deterministic)
+            fraction = FractionFst(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
             math_symbol = MathSymbol(deterministic=deterministic)
-            money = MoneyFst(cardinal=cardinal, decimal=decimal,deterministic=deterministic)
+            money = MoneyFst(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
             measure = Measure(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
             time = TimeFst(deterministic=deterministic)
             whitelist = WhiteListFst(input_case=input_case, deterministic=deterministic)
