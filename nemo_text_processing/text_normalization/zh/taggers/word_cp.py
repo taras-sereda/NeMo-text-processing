@@ -11,22 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pynini
-from nemo_text_processing.text_normalization.zh.graph_utils import NEMO_NOT_SPACE, GraphFst, NEMO_NOT_QUOTE
+from nemo_text_processing.text_normalization.zh.graph_utils import NEMO_CHAR, GraphFst
 from pynini.lib import pynutil
 
 
 class WordFst(GraphFst):
-    """
-    Finite state transducer for classifying word.
-        e.g. dormir -> tokens { name: "dormir" }
+    '''
+        你 -> char { name: "你" }
+    '''
 
-    Args:
-        deterministic: if True will provide a single transduction option,
-            for False multiple transduction are generated (used for audio-based normalization)
-    """
+    def __init__(self, deterministic: bool = True, lm: bool = False):
+        super().__init__(name="char", kind="classify", deterministic=deterministic)
 
-    def __init__(self, deterministic: bool = True):
-        super().__init__(name="word", kind="classify")
-        word = pynutil.insert("name: \"") + NEMO_NOT_QUOTE + pynutil.insert("\"")
-        self.fst = word.optimize()
+        graph = pynutil.insert("name: \"") + NEMO_CHAR + pynutil.insert("\"")
+        self.fst = graph.optimize()

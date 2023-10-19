@@ -19,7 +19,7 @@ from nemo_text_processing.text_normalization.zh.verbalizers.postprocessor import
 from nemo_text_processing.text_normalization.zh.verbalizers.verbalize import VerbalizeFst
 from pynini.lib import pynutil
 
-# import logging
+# from nemo.utils import logging
 
 
 class VerbalizeFinalFst(GraphFst):

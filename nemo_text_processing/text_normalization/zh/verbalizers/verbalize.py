@@ -13,23 +13,21 @@
 # limitations under the License.
 import pynini
 from nemo_text_processing.text_normalization.zh.graph_utils import GraphFst
-from nemo_text_processing.text_normalization.zh.verbalizers.cardinal import CardinalFst
-from nemo_text_processing.text_normalization.zh.verbalizers.date import DateFst
-from nemo_text_processing.text_normalization.zh.verbalizers.decimal import DecimalFst
-from nemo_text_processing.text_normalization.zh.verbalizers.fraction import FractionFst
-from nemo_text_processing.text_normalization.zh.verbalizers.math_symbol import MathSymbol
+from nemo_text_processing.text_normalization.zh.verbalizers.cardinal import CardinalFst as Cardinal
+from nemo_text_processing.text_normalization.zh.verbalizers.word import Char as Char
+from nemo_text_processing.text_normalization.zh.verbalizers.date import DateFst as Date
+from nemo_text_processing.text_normalization.zh.verbalizers.fraction import FractionFst as Fraction
+from nemo_text_processing.text_normalization.zh.verbalizers.math_symbol import MathSymbol 
 from nemo_text_processing.text_normalization.zh.verbalizers.measure import Measure
-from nemo_text_processing.text_normalization.zh.verbalizers.money import MoneyFst
-from nemo_text_processing.text_normalization.zh.verbalizers.ordinal import OrdinalFst
-from nemo_text_processing.text_normalization.zh.verbalizers.time import TimeFst
+from nemo_text_processing.text_normalization.zh.verbalizers.money import MoneyFst as Money
+from nemo_text_processing.text_normalization.zh.verbalizers.time import TimeFst as Time
 from nemo_text_processing.text_normalization.zh.verbalizers.whitelist import Whitelist
-from nemo_text_processing.text_normalization.zh.verbalizers.word import Char
 
 
 class VerbalizeFst(GraphFst):
     """
     Composes other verbalizer grammars.
-    For deployment, this grammar will be compiled and exported to OpenFst Finite State Archive (FAR) File.
+    For deployment, this grammar will be compiled and exported to OpenFst Finate State Archiv (FAR) File. 
     More details to deployment at NeMo/tools/text_processing_deployment.
     Args:
         deterministic: if True will provide a single transduction option,
@@ -39,29 +37,25 @@ class VerbalizeFst(GraphFst):
     def __init__(self, deterministic: bool = True):
         super().__init__(name="verbalize", kind="verbalize", deterministic=deterministic)
 
-        date = DateFst(deterministic=deterministic)
-        cardinal = CardinalFst(deterministic=deterministic)
+        #date = Date(deterministic=deterministic)
+        cardinal = Cardinal(deterministic=deterministic)
         char = Char(deterministic=deterministic)
-        decimal = DecimalFst(deterministic=deterministic)
-        fraction = FractionFst(decimal=decimal, deterministic=deterministic)
-        math_symbol = MathSymbol(deterministic=deterministic)
-        money = MoneyFst(decimal=decimal, deterministic=deterministic)
-        measure = Measure(deterministic=deterministic)
-        ordinal = OrdinalFst()
-        time = TimeFst(deterministic=deterministic)
+        #fraction = Fraction(deterministic=deterministic)
+        #math_symbol = MathSymbol(deterministic=deterministic)
+        #money = Money(deterministic=deterministic)
+        #measure = Measure(deterministic=deterministic)
+        #time = Time(deterministic=deterministic)
         whitelist = Whitelist(deterministic=deterministic)
 
         graph = pynini.union(
-            date.fst,
+            #date.fst,
             cardinal.fst,
-            decimal.fst,
-            fraction.fst,
+            #fraction.fst,
             char.fst,
-            math_symbol.fst,
-            money.fst,
-            measure.fst,
-            ordinal.fst,
-            time.fst,
+            ##math_symbol.fst,
+            #money.fst,
+            #measure.fst,
+            #time.fst,
             whitelist.fst,
         )
 
