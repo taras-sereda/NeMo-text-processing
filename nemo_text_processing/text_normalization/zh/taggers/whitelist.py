@@ -41,19 +41,15 @@ class WhiteListFst(GraphFst):
             return graph
 
         graph = _get_whitelist_graph(get_abs_path("data/whitelist.tsv"))
-        
-        graph |= pynutil.add_weight(
-                _get_whitelist_graph(get_abs_path("data/whitelist.tsv")), weight=0.0001
-            )
+
+        graph |= pynutil.add_weight(_get_whitelist_graph(get_abs_path("data/whitelist.tsv")), weight=0.0001)
 
         if input_file:
-            whitelist_provided = _get_whitelist_graph (input_file)
+            whitelist_provided = _get_whitelist_graph(input_file)
             if not deterministic:
                 graph |= whitelist_provided
             else:
                 graph = whitelist_provided
-
-
 
         self.graph = graph
         self.final_graph = convert_space(self.graph).optimize()
