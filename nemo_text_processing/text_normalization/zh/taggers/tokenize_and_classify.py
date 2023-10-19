@@ -16,18 +16,19 @@ import os
 import pynini
 from nemo_text_processing.text_normalization.zh.graph_utils import NEMO_SIGMA, GraphFst
 from nemo_text_processing.text_normalization.zh.taggers.cardinal import CardinalFst
-from nemo_text_processing.text_normalization.zh.taggers.decimal import DecimalFst
-from nemo_text_processing.text_normalization.zh.taggers.ordinal import OrdinalFst
-#from nemo_text_processing.text_normalization.zh.taggers.char import Char
-from nemo_text_processing.text_normalization.zh.taggers.word import WordFst
 from nemo_text_processing.text_normalization.zh.taggers.date import DateFst
+from nemo_text_processing.text_normalization.zh.taggers.decimal import DecimalFst
 from nemo_text_processing.text_normalization.zh.taggers.fraction import FractionFst
 from nemo_text_processing.text_normalization.zh.taggers.math_symbol import MathSymbol
 from nemo_text_processing.text_normalization.zh.taggers.measure import Measure
 from nemo_text_processing.text_normalization.zh.taggers.money import MoneyFst
+from nemo_text_processing.text_normalization.zh.taggers.ordinal import OrdinalFst
 from nemo_text_processing.text_normalization.zh.taggers.preprocessor import PreProcessor
 from nemo_text_processing.text_normalization.zh.taggers.time import TimeFst
 from nemo_text_processing.text_normalization.zh.taggers.whitelist import WhiteListFst
+
+# from nemo_text_processing.text_normalization.zh.taggers.char import Char
+from nemo_text_processing.text_normalization.zh.taggers.word import WordFst
 from pynini.lib import pynutil
 
 
@@ -60,36 +61,33 @@ class ClassifyFst(GraphFst):
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
             whitelist_file = os.path.basename(whitelist) if whitelist else ""
-            far_file = os.path.join(
-                cache_dir, f"zh_tn_{deterministic}_deterministic_{whitelist_file}_tokenize.far"
-            )
+            far_file = os.path.join(cache_dir, f"zh_tn_{deterministic}_deterministic_{whitelist_file}_tokenize.far")
         if not overwrite_cache and far_file and os.path.exists(far_file):
             self.fst = pynini.Far(far_file, mode="r")["tokenize_and_classify"]
         else:
-            #date = DateFst(deterministic=deterministic)
+            # date = DateFst(deterministic=deterministic)
             cardinal = CardinalFst(deterministic=deterministic)
-            decimal = DecimalFst(cardinal=cardinal,deterministic=deterministic)
+            decimal = DecimalFst(cardinal=cardinal, deterministic=deterministic)
             word = WordFst(deterministic=deterministic)
-            #fraction = FractionFst(cardinal=cardinal, decimal=decimal,deterministic=deterministic)
-            #math_symbol = MathSymbol(deterministic=deterministic)
-            #money = MoneyFst(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
-            #measure = Measure(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
-            #time = TimeFst(deterministic=deterministic)
+            # fraction = FractionFst(cardinal=cardinal, decimal=decimal,deterministic=deterministic)
+            # math_symbol = MathSymbol(deterministic=deterministic)
+            # money = MoneyFst(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
+            # measure = Measure(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
+            # time = TimeFst(deterministic=deterministic)
             whitelist = WhiteListFst(deterministic=deterministic)
-            #ordinal = OrdinalFst(cardinal=cardinal,deterministic=deterministic)
-            
+            # ordinal = OrdinalFst(cardinal=cardinal,deterministic=deterministic)
 
             classify = pynini.union(
-                #pynutil.add_weight(date.fst, 1.02),
-                #pynutil.add_weight(fraction.fst, 1.05),
-                #pynutil.add_weight(money.fst, 1.05),
-                #pynutil.add_weight(measure.fst, 1.05),
-                #pynutil.add_weight(time.fst, 1.05),
+                # pynutil.add_weight(date.fst, 1.02),
+                # pynutil.add_weight(fraction.fst, 1.05),
+                # pynutil.add_weight(money.fst, 1.05),
+                # pynutil.add_weight(measure.fst, 1.05),
+                # pynutil.add_weight(time.fst, 1.05),
                 pynutil.add_weight(whitelist.fst, 1.03),
                 pynutil.add_weight(cardinal.fst, 1.06),
-                #pynutil.add_weight(math_symbol.fst, 1.08),
-                #pynutil.add_weight(decimal.fst, 1.08),
-                #pynutil.add_weight(ordinal.fst, 1.08),
+                # pynutil.add_weight(math_symbol.fst, 1.08),
+                # pynutil.add_weight(decimal.fst, 1.08),
+                # pynutil.add_weight(ordinal.fst, 1.08),
                 pynutil.add_weight(word.fst, 100),
             )
             token = pynutil.insert("tokens { ") + classify + pynutil.insert(" } ")
@@ -98,4 +96,3 @@ class ClassifyFst(GraphFst):
 
             preprocessor = PreProcessor(remove_interjections=True, fullwidth_to_halfwidth=True,)
             self.fst = preprocessor.fst @ tagger
-            

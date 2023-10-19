@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from nemo_text_processing.text_normalization.zh.graph_utils import NEMO_CHAR, GraphFst, NEMO_NOT_SPACE
+from nemo_text_processing.text_normalization.zh.graph_utils import NEMO_CHAR, NEMO_NOT_SPACE, GraphFst
 from pynini.lib import pynutil
 
 

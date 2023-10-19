@@ -14,14 +14,14 @@
 import pynini
 from nemo_text_processing.text_normalization.zh.graph_utils import GraphFst
 from nemo_text_processing.text_normalization.zh.verbalizers.cardinal import CardinalFst as Cardinal
-from nemo_text_processing.text_normalization.zh.verbalizers.word import Char as Char
 from nemo_text_processing.text_normalization.zh.verbalizers.date import DateFst as Date
 from nemo_text_processing.text_normalization.zh.verbalizers.fraction import FractionFst as Fraction
-from nemo_text_processing.text_normalization.zh.verbalizers.math_symbol import MathSymbol 
+from nemo_text_processing.text_normalization.zh.verbalizers.math_symbol import MathSymbol
 from nemo_text_processing.text_normalization.zh.verbalizers.measure import Measure
 from nemo_text_processing.text_normalization.zh.verbalizers.money import MoneyFst as Money
 from nemo_text_processing.text_normalization.zh.verbalizers.time import TimeFst as Time
 from nemo_text_processing.text_normalization.zh.verbalizers.whitelist import Whitelist
+from nemo_text_processing.text_normalization.zh.verbalizers.word import Char as Char
 
 
 class VerbalizeFst(GraphFst):
@@ -37,25 +37,25 @@ class VerbalizeFst(GraphFst):
     def __init__(self, deterministic: bool = True):
         super().__init__(name="verbalize", kind="verbalize", deterministic=deterministic)
 
-        #date = Date(deterministic=deterministic)
+        # date = Date(deterministic=deterministic)
         cardinal = Cardinal(deterministic=deterministic)
         char = Char(deterministic=deterministic)
-        #fraction = Fraction(deterministic=deterministic)
-        #math_symbol = MathSymbol(deterministic=deterministic)
-        #money = Money(deterministic=deterministic)
-        #measure = Measure(deterministic=deterministic)
-        #time = Time(deterministic=deterministic)
+        # fraction = Fraction(deterministic=deterministic)
+        # math_symbol = MathSymbol(deterministic=deterministic)
+        # money = Money(deterministic=deterministic)
+        # measure = Measure(deterministic=deterministic)
+        # time = Time(deterministic=deterministic)
         whitelist = Whitelist(deterministic=deterministic)
 
         graph = pynini.union(
-            #date.fst,
+            # date.fst,
             cardinal.fst,
-            #fraction.fst,
+            # fraction.fst,
             char.fst,
             ##math_symbol.fst,
-            #money.fst,
-            #measure.fst,
-            #time.fst,
+            # money.fst,
+            # measure.fst,
+            # time.fst,
             whitelist.fst,
         )
 
