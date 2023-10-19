@@ -331,13 +331,13 @@ class Normalizer:
         text = text.strip()
         if not text:
             if verbose:
-                logger.info(text)
+                print(text)
             return text
         text = pynini.escape(text)
         tagged_lattice = self.find_tags(text)
         tagged_text = Normalizer.select_tag(tagged_lattice)
         if verbose:
-            logger.info(tagged_text)
+            print(tagged_text) # was prevously this line, 
         self.parser(tagged_text)
         tokens = self.parser.parse()
         split_tokens = self._split_tokens_to_reduce_number_of_permutations(tokens)
@@ -772,7 +772,7 @@ if __name__ == "__main__":
     )
     start_time = perf_counter()
     if args.input_string:
-        logger.info(
+        print(
             normalizer.normalize(
                 args.input_string,
                 verbose=args.verbose,
