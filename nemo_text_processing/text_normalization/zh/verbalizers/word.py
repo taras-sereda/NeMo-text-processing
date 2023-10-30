@@ -21,7 +21,7 @@ from nemo_text_processing.text_normalization.zh.graph_utils import (
 from pynini.lib import pynutil
 
 
-class Char(GraphFst):
+class WordFst(GraphFst):
     '''
         tokens { char: "你" } -> 你
     '''

@@ -588,20 +588,6 @@ class CardinalFst(GraphFst):
             )
         )
 
-        digit_graph = NEMO_DIGIT @ digit
-        graph_teen = NEMO_DIGIT ** 2 @ graph_teen
-        graph_tens = NEMO_DIGIT ** 2 @ graph_tens
-        graph_hundred = NEMO_DIGIT ** 3 @ graph_hundred
-        graph_thousand = NEMO_DIGIT ** 4 @ graph_thousand
-        graph_tenthousand = NEMO_DIGIT ** 5 @ graph_tenthousand
-        graph_hundredthousand = NEMO_DIGIT ** 6 @ graph_hundredthousand
-        graph_million = NEMO_DIGIT ** 7 @ graph_million
-        graph_tenmillion = NEMO_DIGIT ** 8 @ graph_tenmillion
-        graph_hundredmillion = NEMO_DIGIT ** 9 @ graph_hundredmillion
-        graph_billion = NEMO_DIGIT ** 10 @ graph_billion
-        graph_tenbillion = NEMO_DIGIT ** 11 @ graph_tenbillion
-        graph_hundredbillion = NEMO_DIGIT ** 12 @ graph_hundredbillion
-
         # combining all the graph above
         graph = pynini.union(
             pynutil.add_weight(graph_hundredbillion, -2.0),
@@ -616,7 +602,7 @@ class CardinalFst(GraphFst):
             pynutil.add_weight(graph_hundred, -1.1),
             pynutil.add_weight(graph_tens, -1.0),
             graph_teen,
-            digit_graph,
+            digit,
             zero,
         )
 
@@ -636,7 +622,7 @@ class CardinalFst(GraphFst):
         )
         final_graph_numbers_only = pynutil.insert("integer: \"") + graph + pynutil.insert("\"")
         # imprted when building other grammars
-        self.just_cardinals = graph | graph_mandarin | final_graph_sign | graph_mandarin_sign
+        self.just_cardinals = graph | graph_mandarin #| final_graph_sign | graph_mandarin_sign
         graph_mandarins = pynutil.insert("integer: \"") + graph_mandarin + pynutil.insert("\"")
 
         final_graph = final_graph_numbers_only | final_graph_sign | graph_mandarins | graph_mandarin_sign
