@@ -337,7 +337,7 @@ class Normalizer:
         tagged_lattice = self.find_tags(text)
         tagged_text = Normalizer.select_tag(tagged_lattice)
         if verbose:
-            print(tagged_text) # was prevously this line, 
+            print(tagged_text)  # was prevously this line,
         self.parser(tagged_text)
         tokens = self.parser.parse()
         split_tokens = self._split_tokens_to_reduce_number_of_permutations(tokens)
