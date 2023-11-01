@@ -88,13 +88,13 @@ class DateFst(GraphFst):
             | pynini.accep('纪元前')
         )
         prefix_component = pynutil.insert("era: \"") + prefix + pynutil.insert("\"")
-        #gp_prefix+(1,2,3)
+        # gp_prefix+(1,2,3)
         graph_prefix = prefix_component + pynutil.insert(' ') + (graph_ymd | year_month | only_year)
 
         suffix_component = pynutil.insert("era: \"") + suffix + pynutil.insert("\"")
-        #gp_suffix +(1,2,3)
+        # gp_suffix +(1,2,3)
         graph_suffix = (graph_ymd | year_month | only_year) + pynutil.insert(' ') + suffix_component
-        #gp_4
+        # gp_4
         graph_affix = graph_prefix | graph_suffix
 
         graph_suffix_year = (

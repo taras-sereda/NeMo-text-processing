@@ -622,7 +622,7 @@ class CardinalFst(GraphFst):
         )
         final_graph_numbers_only = pynutil.insert("integer: \"") + graph + pynutil.insert("\"")
         # imprted when building other grammars
-        self.just_cardinals = graph | graph_mandarin #| final_graph_sign | graph_mandarin_sign
+        self.just_cardinals = graph | graph_mandarin  # | final_graph_sign | graph_mandarin_sign
         graph_mandarins = pynutil.insert("integer: \"") + graph_mandarin + pynutil.insert("\"")
 
         final_graph = final_graph_numbers_only | final_graph_sign | graph_mandarins | graph_mandarin_sign

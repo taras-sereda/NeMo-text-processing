@@ -14,16 +14,16 @@
 import pynini
 from nemo_text_processing.text_normalization.zh.graph_utils import GraphFst
 from nemo_text_processing.text_normalization.zh.verbalizers.cardinal import CardinalFst
-from nemo_text_processing.text_normalization.zh.verbalizers.decimal import DecimalFst
-from nemo_text_processing.text_normalization.zh.verbalizers.ordinal import OrdinalFst
-from nemo_text_processing.text_normalization.zh.verbalizers.word import WordFst
 from nemo_text_processing.text_normalization.zh.verbalizers.date import DateFst
+from nemo_text_processing.text_normalization.zh.verbalizers.decimal import DecimalFst
 from nemo_text_processing.text_normalization.zh.verbalizers.fraction import FractionFst
-from nemo_text_processing.text_normalization.zh.verbalizers.math_symbol import MathSymbol 
+from nemo_text_processing.text_normalization.zh.verbalizers.math_symbol import MathSymbol
 from nemo_text_processing.text_normalization.zh.verbalizers.measure import Measure
 from nemo_text_processing.text_normalization.zh.verbalizers.money import MoneyFst
+from nemo_text_processing.text_normalization.zh.verbalizers.ordinal import OrdinalFst
 from nemo_text_processing.text_normalization.zh.verbalizers.time import TimeFst
 from nemo_text_processing.text_normalization.zh.verbalizers.whitelist import Whitelist
+from nemo_text_processing.text_normalization.zh.verbalizers.word import WordFst
 
 
 class VerbalizeFst(GraphFst):
@@ -44,9 +44,9 @@ class VerbalizeFst(GraphFst):
         ordinal = OrdinalFst(deterministic=deterministic)
         decimal = DecimalFst(deterministic=deterministic)
         word = WordFst(deterministic=deterministic)
-        fraction = FractionFst(decimal=decimal,deterministic=deterministic)
+        fraction = FractionFst(decimal=decimal, deterministic=deterministic)
         math_symbol = MathSymbol(deterministic=deterministic)
-        money = MoneyFst(decimal=decimal,deterministic=deterministic)
+        money = MoneyFst(decimal=decimal, deterministic=deterministic)
         measure = Measure(deterministic=deterministic)
         time = TimeFst(deterministic=deterministic)
         whitelist = Whitelist(deterministic=deterministic)
