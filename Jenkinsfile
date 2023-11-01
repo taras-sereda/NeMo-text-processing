@@ -22,8 +22,12 @@ pipeline {
     RU_TN_CACHE='/home/jenkinsci/TestData/text_norm/ci/grammars/06-08-23-0'
     VI_TN_CACHE='/home/jenkinsci/TestData/text_norm/ci/grammars/06-08-23-0'
     SV_TN_CACHE='/home/jenkinsci/TestData/text_norm/ci/grammars/06-08-23-0'
+<<<<<<< HEAD
     ZH_TN_CACHE='/home/jenkinsci/TestData/text_norm/ci/grammars/07-27-23-0'
     IT_TN_CACHE='/home/jenkinsci/TestData/text_norm/ci/grammars/10-26-23-0'
+=======
+    ZH_TN_CACHE='/home/jenkinsci/TestData/text_norm/ci/grammars/10-05-23-0'
+>>>>>>> dd39e8c00d9c66004da24c9768931892e7fe8ba0
     DEFAULT_TN_CACHE='/home/jenkinsci/TestData/text_norm/ci/grammars/06-08-23-0'
   }
   stages {
@@ -307,7 +311,7 @@ pipeline {
         }
         stage('L0: ZH ITN grammars') {
           steps {
-            sh 'CUDA_VISIBLE_DEVICES="" python nemo_text_processing/inverse_text_normalization/inverse_normalize.py --lang=zh --text="二零零二年一月二十八日 " --cache_dir ${ZH_TN_CACHE}'
+            sh 'CUDA_VISIBLE_DEVICES="" python nemo_text_processing/inverse_text_normalization/inverse_normalize.py --lang=zh --text="二零零二年" --cache_dir ${ZH_TN_CACHE}'
           }
         }
       }

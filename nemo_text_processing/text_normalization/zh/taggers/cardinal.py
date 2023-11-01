@@ -14,7 +14,7 @@
 
 
 import pynini
-from nemo_text_processing.text_normalization.zh.graph_utils import GraphFst
+from nemo_text_processing.text_normalization.zh.graph_utils import NEMO_DIGIT, GraphFst
 from nemo_text_processing.text_normalization.zh.utils import get_abs_path
 from pynini.lib import pynutil
 
@@ -622,7 +622,7 @@ class CardinalFst(GraphFst):
         )
         final_graph_numbers_only = pynutil.insert("integer: \"") + graph + pynutil.insert("\"")
         # imprted when building other grammars
-        self.just_cardinals = graph | graph_mandarin | final_graph_sign | graph_mandarin_sign
+        self.just_cardinals = graph | graph_mandarin #| final_graph_sign | graph_mandarin_sign
         graph_mandarins = pynutil.insert("integer: \"") + graph_mandarin + pynutil.insert("\"")
 
         final_graph = final_graph_numbers_only | final_graph_sign | graph_mandarins | graph_mandarin_sign

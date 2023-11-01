@@ -331,13 +331,23 @@ class Normalizer:
             text = pre_process(text)
         text = text.strip()
         if not text:
+<<<<<<< HEAD
             logger.debug(text)
+=======
+            if verbose:
+                print(text)
+>>>>>>> dd39e8c00d9c66004da24c9768931892e7fe8ba0
             return text
         text = pynini.escape(text)
         tagged_lattice = self.find_tags(text)
         tagged_text = Normalizer.select_tag(tagged_lattice)
+<<<<<<< HEAD
         logger.debug(tagged_text)
 
+=======
+        if verbose:
+            print(tagged_text)  # was prevously this line,
+>>>>>>> dd39e8c00d9c66004da24c9768931892e7fe8ba0
         self.parser(tagged_text)
         tokens = self.parser.parse()
         split_tokens = self._split_tokens_to_reduce_number_of_permutations(tokens)
@@ -772,11 +782,21 @@ if __name__ == "__main__":
     )
     start_time = perf_counter()
     if args.input_string:
+<<<<<<< HEAD
         output = normalizer.normalize(
             args.input_string,
             verbose=args.verbose,
             punct_pre_process=args.punct_pre_process,
             punct_post_process=args.punct_post_process,
+=======
+        print(
+            normalizer.normalize(
+                args.input_string,
+                verbose=args.verbose,
+                punct_pre_process=args.punct_pre_process,
+                punct_post_process=args.punct_post_process,
+            )
+>>>>>>> dd39e8c00d9c66004da24c9768931892e7fe8ba0
         )
         print("=" * 40)
         print(output)

@@ -30,7 +30,7 @@ class FractionFst(GraphFst):
         98% -> tokens { fraction { denominator: "百" numerator: "九十八"} }
     
     Args:
-        cardinal: CardinalFst， decimal: DecimalFst
+        cardinal: CardinalFst, decimal: DecimalFst
     """
 
     def __init__(self, cardinal: GraphFst, decimal: GraphFst, deterministic: bool = True, lm: bool = False):
@@ -38,6 +38,7 @@ class FractionFst(GraphFst):
 
         graph_cardinals = cardinal.just_cardinals
         graph_decimal = decimal.decimal
+        
 
         slash = pynutil.delete('/')
         morpheme = pynutil.delete('分之')
@@ -85,7 +86,8 @@ class FractionFst(GraphFst):
             + slash
             + pynutil.insert(' ')
             + denominator_component
-        )
+        ) # 5又1/3
+
         graph_only_slash = numerator_component + slash + pynutil.insert(' ') + denominator_component
 
         graph_morpheme = (denominator_component + morpheme + pynutil.insert(' ') + numerator_component) | (
@@ -96,30 +98,33 @@ class FractionFst(GraphFst):
             + morpheme
             + pynutil.insert(' ')
             + numerator_component
-        )
+        ) # 5又3分之1
 
         graph_with_suffix = (
             pynini.closure(pynutil.insert("denominator: \"") + suffix + pynutil.insert("\""), 0, 1)
             + morpheme
             + pynutil.insert(' ')
             + numerator_component
-        )
+        ) # 万分之1
 
         percentage = pynutil.delete('%')
-        graph_percentage = (
-            numerator_component
-            + percentage
-            + pynutil.insert(' ')
-            + pynutil.insert("denominator: \"百")
-            + pynutil.insert("\"")
-        )
+        graph_decimal_percentage = (
+            graph_decimal
+            + percentage 
+            + pynutil.insert(' denominator: \"百"')
+        ) # 5.6%
+
+        graph_integer_percentage = (
+            (numerator_component)
+            + percentage 
+            + pynutil.insert(' denominator: \"百"')
+        ) # 5%
 
         graph_hundred = pynutil.delete('100%') + pynutil.insert('numerator: \"百\" denominator: \"百"')
+        # 100%
 
         graph_optional_sign = (
             (pynini.closure(pynutil.insert("negative: ") + pynini.cross("-", "\"负\"")))
-            | (pynini.closure(pynutil.insert("positive: ") + pynini.cross("+", "\"正\"")))
-            | (pynutil.insert("positive: ") + pynutil.insert("\"") + pynini.accep('正') + pynutil.insert("\""))
             | (
                 pynutil.insert('negative: ')
                 + pynutil.insert("\"")
@@ -128,33 +133,27 @@ class FractionFst(GraphFst):
             )
         )
 
-        graph_decimals = (
-            graph_decimal
-            + pynutil.insert(" ")
-            + percentage
-            + pynutil.insert("denominator: \"百")
-            + pynutil.insert("\"")
-        )
-
-        graph = (
-            graph_with_integer
-            | graph_only_slash
-            | graph_morpheme
-            | graph_with_suffix
-            | graph_percentage
-            | graph_decimals
-            | pynutil.add_weight(graph_hundred, -3.0)
+        graph = pynini.union(
+            graph_with_integer,
+            graph_only_slash,
+            graph_morpheme,
+            graph_with_suffix,
+            graph_decimal_percentage,
+            graph_integer_percentage,
+            graph_hundred 
         )
         graph_with_sign = (
             (graph_optional_sign + pynutil.insert(" ") + graph_with_integer)
             | (graph_optional_sign + pynutil.insert(" ") + graph_only_slash)
             | (graph_optional_sign + pynutil.insert(" ") + graph_morpheme)
             | (graph_optional_sign + pynutil.insert(" ") + graph_with_suffix)
-            | (graph_optional_sign + pynutil.insert(" ") + graph_percentage)
+            | (graph_optional_sign + pynutil.insert(" ") + graph_integer_percentage)
+            | (graph_optional_sign + pynutil.insert(" ") + graph_decimal_percentage)
             | pynutil.add_weight((graph_optional_sign + pynutil.insert(" ") + graph_hundred), -3.0)
         )
 
         final_graph = graph | graph_with_sign
+        #final_graph = graph_decimal_percentage | graph_integer_percentage
 
         final_graph = self.add_tokens(final_graph)
         self.fst = final_graph.optimize()
