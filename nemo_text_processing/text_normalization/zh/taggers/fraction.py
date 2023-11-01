@@ -38,7 +38,6 @@ class FractionFst(GraphFst):
 
         graph_cardinals = cardinal.just_cardinals
         graph_decimal = decimal.decimal
-        
 
         slash = pynutil.delete('/')
         morpheme = pynutil.delete('分之')
@@ -86,7 +85,7 @@ class FractionFst(GraphFst):
             + slash
             + pynutil.insert(' ')
             + denominator_component
-        ) # 5又1/3
+        )  # 5又1/3
 
         graph_only_slash = numerator_component + slash + pynutil.insert(' ') + denominator_component
 
@@ -98,39 +97,28 @@ class FractionFst(GraphFst):
             + morpheme
             + pynutil.insert(' ')
             + numerator_component
-        ) # 5又3分之1
+        )  # 5又3分之1
 
         graph_with_suffix = (
             pynini.closure(pynutil.insert("denominator: \"") + suffix + pynutil.insert("\""), 0, 1)
             + morpheme
             + pynutil.insert(' ')
             + numerator_component
-        ) # 万分之1
+        )  # 万分之1
 
         percentage = pynutil.delete('%')
-        graph_decimal_percentage = (
-            graph_decimal
-            + percentage 
-            + pynutil.insert(' denominator: \"百"')
-        ) # 5.6%
+        graph_decimal_percentage = graph_decimal + percentage + pynutil.insert(' denominator: \"百"')  # 5.6%
 
-        graph_integer_percentage = (
-            (numerator_component)
-            + percentage 
-            + pynutil.insert(' denominator: \"百"')
-        ) # 5%
+        graph_integer_percentage = (numerator_component) + percentage + pynutil.insert(' denominator: \"百"')  # 5%
 
         graph_hundred = pynutil.delete('100%') + pynutil.insert('numerator: \"百\" denominator: \"百"')
         # 100%
 
-        graph_optional_sign = (
-            (pynini.closure(pynutil.insert("negative: ") + pynini.cross("-", "\"负\"")))
-            | (
-                pynutil.insert('negative: ')
-                + pynutil.insert("\"")
-                + (pynini.accep('负') | pynini.cross('負', '负'))
-                + pynutil.insert("\"")
-            )
+        graph_optional_sign = (pynini.closure(pynutil.insert("negative: ") + pynini.cross("-", "\"负\""))) | (
+            pynutil.insert('negative: ')
+            + pynutil.insert("\"")
+            + (pynini.accep('负') | pynini.cross('負', '负'))
+            + pynutil.insert("\"")
         )
 
         graph = pynini.union(
@@ -140,7 +128,7 @@ class FractionFst(GraphFst):
             graph_with_suffix,
             graph_decimal_percentage,
             graph_integer_percentage,
-            graph_hundred 
+            graph_hundred,
         )
         graph_with_sign = (
             (graph_optional_sign + pynutil.insert(" ") + graph_with_integer)
@@ -153,7 +141,7 @@ class FractionFst(GraphFst):
         )
 
         final_graph = graph | graph_with_sign
-        #final_graph = graph_decimal_percentage | graph_integer_percentage
+        # final_graph = graph_decimal_percentage | graph_integer_percentage
 
         final_graph = self.add_tokens(final_graph)
         self.fst = final_graph.optimize()
