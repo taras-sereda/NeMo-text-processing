@@ -13,7 +13,7 @@
 # limitations under the License.
 import pynini
 from nemo_text_processing.text_normalization.zh.graph_utils import GraphFst
-from nemo_text_processing.text_normalization.zh.taggers.cardinal import CardinalFst
+#from nemo_text_processing.text_normalization.zh.taggers.cardinal import CardinalFst
 from nemo_text_processing.text_normalization.zh.utils import get_abs_path
 from pynini.lib import pynutil
 
@@ -23,7 +23,7 @@ class MathSymbol(GraphFst):
         + -> tokens { sign: "加" }
     '''
 
-    def __init__(self, deterministic: bool = True, lm: bool = False):
+    def __init__(self, cardinal: GraphFst, deterministic: bool = True, lm: bool = False):
         super().__init__(name="sign", kind="classify", deterministic=deterministic)
         '''
             add your sign in data/math/symbol.tsv,this graph just convert sigh to character,you can add more 
@@ -35,9 +35,9 @@ class MathSymbol(GraphFst):
         score = (
             pynutil.insert("score: \"")
             + pynini.closure(score_sign, 0, 1)
-            + CardinalFst().just_cardinals
+            + cardinal.just_cardinals
             + score_sign
-            + CardinalFst().just_cardinals
+            + cardinal.just_cardinals
             + pynutil.insert("\"")
         )
         graph = score
