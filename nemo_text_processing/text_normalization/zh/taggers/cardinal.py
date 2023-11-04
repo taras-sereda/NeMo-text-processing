@@ -42,7 +42,11 @@ class CardinalFst(GraphFst):
         # 百
         hundreds = NEMO_DIGIT ** 3
         graph_hundred_component = (graph_digit + pynutil.insert('百')) + pynini.union(
-            pynini.closure(pynutil.delete('0')), (pynini.closure(pynutil.delete('0')) + pynini.union(graph_ties + graph_digit, graph_teen_alt, pynutil.insert('零') + graph_digit))
+            pynini.closure(pynutil.delete('0')),
+            (
+                pynini.closure(pynutil.delete('0'))
+                + pynini.union(graph_ties + graph_digit, graph_teen_alt, pynutil.insert('零') + graph_digit)
+            ),
         )
         graph_hundred = hundreds @ graph_hundred_component
 

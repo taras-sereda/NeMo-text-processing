@@ -26,6 +26,7 @@ from nemo_text_processing.text_normalization.zh.taggers.ordinal import OrdinalFs
 from nemo_text_processing.text_normalization.zh.taggers.preprocessor import PreProcessor
 from nemo_text_processing.text_normalization.zh.taggers.time import TimeFst
 from nemo_text_processing.text_normalization.zh.taggers.whitelist import WhiteListFst
+
 # from nemo_text_processing.text_normalization.zh.taggers.char import Char
 from nemo_text_processing.text_normalization.zh.taggers.word import WordFst
 from pynini.lib import pynutil
@@ -95,4 +96,3 @@ class ClassifyFst(GraphFst):
 
             preprocessor = PreProcessor(remove_interjections=True, fullwidth_to_halfwidth=True,)
             self.fst = preprocessor.fst @ tagger
-
