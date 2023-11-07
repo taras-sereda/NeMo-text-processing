@@ -17,7 +17,7 @@ from nemo_text_processing.text_normalization.zh.utils import get_abs_path
 from pynini.lib import pynutil
 
 
-class Measure(GraphFst):
+class MeasureFst(GraphFst):
     '''
         1kg  -> tokens { measure { cardinal { integer: "一" } units: "千克" } }
     '''

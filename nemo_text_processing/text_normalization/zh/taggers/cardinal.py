@@ -32,23 +32,27 @@ class CardinalFst(GraphFst):
         graph_teen = pynini.string_file(get_abs_path("data/number/teen.tsv"))
         graph_teen_alt = pynini.string_file(get_abs_path("data/number/teen_alt.tsv"))
 
+        alls = NEMO_DIGIT ** 2 | NEMO_DIGIT ** 1
         graph_all = (
             (graph_ties + (graph_digit | pynutil.delete('0'))) | graph_teen_alt | graph_digit
         )  # graph_all when within a larger number e.g., 316-> 三百一十六 instead of 三百十六
+
+        graph_all = alls @ graph_all
         graph_all_alt = (
             (graph_ties + (graph_digit | pynutil.delete('0'))) | graph_teen | graph_digit
         )  # graph_all when at the head of the larger numbere.g., 13万 -> 十三万 instead of 一十三万
+        graph_all_alt = alls @ graph_all_alt
 
         # 百
         hundreds = NEMO_DIGIT ** 3
         graph_hundred_component = (graph_digit + pynutil.insert('百')) + pynini.union(
             pynini.closure(pynutil.delete('0')),
-            (
-                pynini.closure(pynutil.delete('0'))
-                + pynini.union(graph_ties + graph_digit, graph_teen_alt, pynutil.insert('零') + graph_digit)
-            ),
+            (pynini.closure(pynutil.delete('0') + pynutil.insert('零')) + graph_all),
         )
         graph_hundred = hundreds @ graph_hundred_component
+
+        self.digit = graph_digit
+        self.all = graph_all
 
         # 千
         thousands = NEMO_DIGIT ** 4
