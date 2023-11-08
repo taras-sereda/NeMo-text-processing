@@ -33,14 +33,7 @@ class MathSymbol(GraphFst):
         score_sign = pynini.string_file(get_abs_path("data/math/score.tsv")) | pynini.string_file(
             get_abs_path("data/math/symbol.tsv")
         )
-        # score = (
-        #    pynutil.insert("score: \"")
-        #    + pynini.closure(score_sign, 0, 1)
-        #    + cardinal.just_cardinals
-        #    + score_sign
-        #    + cardinal.just_cardinals
-        #    + pynutil.insert("\"")
-        # )
+    
         score = (pynutil.insert("score: \"") + score_sign + cardinal.just_cardinals + pynutil.insert("\"")) | (
             pynutil.insert("score: \"")
             + cardinal.just_cardinals

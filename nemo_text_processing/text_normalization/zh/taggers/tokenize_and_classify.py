@@ -69,7 +69,7 @@ class ClassifyFst(GraphFst):
             cardinal = CardinalFst(deterministic=deterministic)
             decimal = DecimalFst(cardinal=cardinal, deterministic=deterministic)
             word = WordFst(deterministic=deterministic)
-            fraction = FractionFst(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
+            fraction = FractionFst(cardinal=cardinal, deterministic=deterministic)
             math_symbol = MathSymbol(cardinal=cardinal, deterministic=deterministic)
             money = MoneyFst(cardinal=cardinal, decimal=decimal, deterministic=deterministic)
             measure = MeasureFst(cardinal=cardinal, decimal=decimal, deterministic=deterministic)

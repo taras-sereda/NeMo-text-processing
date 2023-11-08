@@ -37,7 +37,7 @@ class MoneyFst(GraphFst):
 
         # regular money gramamr with currency symbols $1000
         currency_component = pynutil.insert("currency: \"") + currency + pynutil.insert("\"")
-        number_component = pynutil.insert("integer: \"") + cardinal + pynutil.insert("\"")
+        number_component = pynutil.insert("integer_part: \"") + cardinal + pynutil.insert("\"")
         graph_regular_money = currency_component + pynutil.insert(" ") + number_component
 
         # 块 元 毛 with optional symbols
@@ -53,8 +53,8 @@ class MoneyFst(GraphFst):
         currency_mandarin_component = pynutil.insert("currency: \"") + currency_mandarin + pynutil.insert("\"")
         unit_components = (
             (pynutil.insert("currency: \"") + unit_major + pynutil.insert("\""))
-            | (pynutil.insert("currency_major: \"") + unit_minor + pynutil.insert("\""))
-            | (pynutil.insert("currency_minor: \"") + unit_minor_alt + pynutil.insert("\""))
+            | (pynutil.insert("currency_maj: \"") + unit_minor + pynutil.insert("\""))
+            | (pynutil.insert("currency_min: \"") + unit_minor_alt + pynutil.insert("\""))
         )
 
         graph_unit_only = (

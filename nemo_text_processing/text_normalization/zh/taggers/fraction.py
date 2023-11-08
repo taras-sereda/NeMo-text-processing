@@ -15,6 +15,7 @@
 
 import pynini
 from nemo_text_processing.text_normalization.zh.graph_utils import GraphFst
+from nemo_text_processing.text_normalization.zh.utils import get_abs_path
 from pynini.lib import pynutil
 
 
@@ -33,11 +34,13 @@ class FractionFst(GraphFst):
         cardinal: CardinalFst, decimal: DecimalFst
     """
 
-    def __init__(self, cardinal: GraphFst, decimal: GraphFst, deterministic: bool = True, lm: bool = False):
+    def __init__(self, cardinal: GraphFst, deterministic: bool = True, lm: bool = False):
         super().__init__(name="fraction", kind="classify", deterministic=deterministic)
 
         graph_cardinals = cardinal.just_cardinals
-        graph_decimal = decimal.decimal
+        #graph_decimal = decimal.decimal
+        graph_digit = pynini.string_file(get_abs_path("data/number/digit.tsv"))
+        graph_zero = pynini.string_file(get_abs_path("data/number/zero.tsv"))
 
         slash = pynutil.delete('/')
         morpheme = pynutil.delete('分之')
@@ -74,7 +77,7 @@ class FractionFst(GraphFst):
             "仟亿",
         )
 
-        integer_component = pynutil.insert("integer_part: \"") + graph_cardinals + pynutil.insert("\"")
+        integer_component = pynutil.insert('integer_part: \"') + graph_cardinals + pynutil.insert("\"")
         denominator_component = pynutil.insert("denominator: \"") + graph_cardinals + pynutil.insert("\"")
         numerator_component = pynutil.insert("numerator: \"") + graph_cardinals + pynutil.insert("\"")
 
@@ -107,6 +110,8 @@ class FractionFst(GraphFst):
         )  # 万分之1
 
         percentage = pynutil.delete('%')
+     
+        graph_decimal = pynutil.insert('integer_part: \"') + pynini.closure(graph_cardinals + pynutil.delete('.') + pynutil.insert('点') + pynini.closure((graph_digit | graph_zero),1)) + pynutil.insert("\"")
         graph_decimal_percentage = graph_decimal + percentage + pynutil.insert(' denominator: \"百"')  # 5.6%
 
         graph_integer_percentage = (numerator_component) + percentage + pynutil.insert(' denominator: \"百"')  # 5%
@@ -141,7 +146,6 @@ class FractionFst(GraphFst):
         )
 
         final_graph = graph | graph_with_sign
-        # final_graph = graph_decimal_percentage | graph_integer_percentage
 
         final_graph = self.add_tokens(final_graph)
         self.fst = final_graph.optimize()

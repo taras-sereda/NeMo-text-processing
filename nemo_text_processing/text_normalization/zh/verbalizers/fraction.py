@@ -72,8 +72,8 @@ class FractionFst(GraphFst):
         graph_no_integer = denominator_part + delete_space + pynutil.insert('分之') + numerator_part
         graph = graph_with_integer | graph_no_integer
         graph_with_sign = sign_part + delete_space + graph
-        graph_with_decimal = denominator_part + delete_space + pynutil.insert('分之') + graph_decimal
-
+        graph_with_decimal = denominator_part + delete_space + pynutil.insert('分之') + pynutil.delete("integer_part: \"") + pynini.closure(NEMO_NOT_QUOTE) + pynutil.delete("\"")
+ 
         final_graph = graph_with_sign | graph | graph_with_decimal
 
         delete_tokens = self.delete_tokens(final_graph)

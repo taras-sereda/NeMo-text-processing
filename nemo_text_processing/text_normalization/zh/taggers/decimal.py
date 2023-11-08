@@ -75,7 +75,7 @@ class DecimalFst(GraphFst):
         cardinal_after_decimal = pynini.string_file(get_abs_path("data/number/digit.tsv"))
         zero = pynini.string_file(get_abs_path("data/number/zero.tsv"))
 
-        graph_integer = pynutil.insert("integer_part: \"") + cardinal_before_decimal + pynutil.insert("\"")
+        graph_integer = pynutil.insert('integer_part: \"') + cardinal_before_decimal + pynutil.insert("\"")
         graph_fraction = (
             pynutil.insert("fractional_part: \"")
             + pynini.closure((pynini.closure(cardinal_after_decimal, 1) | (pynini.closure(zero, 1))), 1)
