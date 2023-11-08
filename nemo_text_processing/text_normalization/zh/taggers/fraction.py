@@ -38,7 +38,7 @@ class FractionFst(GraphFst):
         super().__init__(name="fraction", kind="classify", deterministic=deterministic)
 
         graph_cardinals = cardinal.just_cardinals
-        #graph_decimal = decimal.decimal
+        # graph_decimal = decimal.decimal
         graph_digit = pynini.string_file(get_abs_path("data/number/digit.tsv"))
         graph_zero = pynini.string_file(get_abs_path("data/number/zero.tsv"))
 
@@ -110,8 +110,17 @@ class FractionFst(GraphFst):
         )  # 万分之1
 
         percentage = pynutil.delete('%')
-     
-        graph_decimal = pynutil.insert('integer_part: \"') + pynini.closure(graph_cardinals + pynutil.delete('.') + pynutil.insert('点') + pynini.closure((graph_digit | graph_zero),1)) + pynutil.insert("\"")
+
+        graph_decimal = (
+            pynutil.insert('integer_part: \"')
+            + pynini.closure(
+                graph_cardinals
+                + pynutil.delete('.')
+                + pynutil.insert('点')
+                + pynini.closure((graph_digit | graph_zero), 1)
+            )
+            + pynutil.insert("\"")
+        )
         graph_decimal_percentage = graph_decimal + percentage + pynutil.insert(' denominator: \"百"')  # 5.6%
 
         graph_integer_percentage = (numerator_component) + percentage + pynutil.insert(' denominator: \"百"')  # 5%
